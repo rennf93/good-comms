@@ -1,0 +1,68 @@
+name: 'Slack Notify Action'
+description: 'A GitHub Action to send notifications to Slack'
+inputs:
+  SLACK_WEBHOOK:
+    description: 'Slack Webhook URL'
+    required: true
+  STATUS:
+    description: 'Job status'
+    required: true
+  AUTHOR_NAME:
+    description: 'Author name'
+    required: false
+  AUTHOR_LINK:
+    description: 'Author link'
+    required: false
+  AUTHOR_ICON:
+    description: 'Author icon URL'
+    required: false
+  TITLE:
+    description: 'Message title'
+    required: false
+  TITLE_LINK:
+    description: 'Title link'
+    required: false
+  MESSAGE:
+    description: 'Message to send to Slack'
+    required: false
+  COLOR:
+    description: 'Message color'
+    required: false
+  SLACK_TOKEN:
+    description: 'Slack Bot User OAuth Token'
+    required: true
+  CHANNEL_ID:
+    description: 'Slack Channel ID'
+    required: true
+  SLACK_THREAD_TS:
+    description: 'Slack Thread Timestamp'
+    required: false
+outputs:
+  SLACK_THREAD_TS:
+    description: 'Timestamp of the Slack message thread'
+    value: ${{ steps.send_slack.outputs.SLACK_THREAD_TS }}
+  SLACK_CHANNEL:
+    description: 'Slack channel where the message was sent'
+    value: ${{ steps.send_slack.outputs.SLACK_CHANNEL }}
+  SLACK_MESSAGE_ID:
+    description: 'ID of the Slack message'
+    value: ${{ steps.send_slack.outputs.SLACK_MESSAGE_ID }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Send Slack Notification
+      shell: bash
+      run: ./entrypoint.sh
+      with:
+        slack_webhook: ${{ inputs.slack_webhook }}
+        status: ${{ inputs.status }}
+        author_name: ${{ inputs.author_name }}
+        author_link: ${{ inputs.author_link }}
+        author_icon: ${{ inputs.author_icon }}
+        title: ${{ inputs.title }}
+        title_link: ${{ inputs.title_link }}
+        message: ${{ inputs.message }}
+        color: ${{ inputs.color }}
+        slack_token: ${{ inputs.slack_token }}
+        channel_id: ${{ inputs.channel_id }}
+        slack_thread_ts: ${{ inputs.slack_thread_ts }}
