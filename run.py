@@ -79,6 +79,7 @@ def get_message_ts(slack_token, channel_id, message):
         print(f"Checking message: {msg.get('text')}")
         if 'attachments' in msg:
             for attachment in msg['attachments']:
+                print(f"Checking attachment text: {attachment.get('text')}")
                 if attachment.get('text') == message:
                     return msg.get('ts')
 
