@@ -2,12 +2,14 @@ import unittest
 from unittest.mock import patch, MagicMock
 import run
 import json
+import os
 
 class TestRun(unittest.TestCase):
 
     @patch('run.get_message_ts')
     @patch('run.requests.post')
     @patch('run.requests.get')
+    @patch.dict(os.environ, {'GITHUB_OUTPUT': '/tmp/github_output'})
     def test_send_slack_message(self, mock_get, mock_post, mock_get_message_ts):
         # Mock the response for the post request
         mock_post.return_value.status_code = 200
@@ -65,10 +67,25 @@ class TestRun(unittest.TestCase):
                 }
             ]
         }
-        mock_post.assert_called_once_with(
+        expected_reply_payload = {
+            "channel": "C12345678",
+            "text": "Notification from GitHub Action",
+            "thread_ts": "1234567890.123456",
+        }
+
+        self.assertEqual(mock_post.call_count, 2)
+        mock_post.assert_any_call(
             "http://example.com",
             data=json.dumps(expected_payload),
             headers={'Content-Type': 'application/json'}
+        )
+        mock_post.assert_any_call(
+            "https://slack.com/api/chat.postMessage",
+            headers={
+                "Authorization": "Bearer xoxb-1234",
+                "Content-Type": "application/json"
+            },
+            data=json.dumps(expected_reply_payload)
         )
         self.assertTrue(mock_get_message_ts.called)
         self.assertEqual(mock_get_message_ts.call_count, 1)
@@ -138,11 +155,56 @@ class TestRun(unittest.TestCase):
             },
             params={
                 "channel": "C12345678",
-                "limit": 3
+                "limit": 10
             }
         )
         self.assertTrue(mock_get.called)
         self.assertEqual(ts, "1234567890.123456")
+
+    @patch('run.send_reply_message')
+    @patch('run.send_slack_message')
+    def test_main_with_thread_ts(self, mock_send_slack_message, mock_send_reply_message):
+        with patch.dict('os.environ', {
+            'INPUT_SLACK_WEBHOOK': 'http://example.com',
+            'INPUT_STATUS': 'success',
+            'INPUT_AUTHOR_NAME': 'GitHub Action',
+            'INPUT_AUTHOR_LINK': '',
+            'INPUT_AUTHOR_ICON': '',
+            'INPUT_TITLE': 'Build Notification',
+            'INPUT_TITLE_LINK': '',
+            'INPUT_MESSAGE': 'Notification from GitHub Action',
+            'INPUT_COLOR': '#36a64f',
+            'INPUT_SLACK_TOKEN': 'xoxb-1234',
+            'INPUT_CHANNEL_ID': 'C12345678',
+            'INPUT_SLACK_THREAD_TS': '1234567890.123456'
+        }):
+            run.main()
+            mock_send_reply_message.assert_called_once_with(
+                'xoxb-1234', 'C12345678', '1234567890.123456', 'Notification from GitHub Action'
+            )
+            mock_send_slack_message.assert_not_called()
+
+    @patch('run.send_reply_message')
+    @patch('run.send_slack_message')
+    def test_main_without_thread_ts(self, mock_send_slack_message, mock_send_reply_message):
+        with patch.dict('os.environ', {
+            'INPUT_SLACK_WEBHOOK': 'http://example.com',
+            'INPUT_STATUS': 'success',
+            'INPUT_AUTHOR_NAME': 'GitHub Action',
+            'INPUT_AUTHOR_LINK': '',
+            'INPUT_AUTHOR_ICON': '',
+            'INPUT_TITLE': 'Build Notification',
+            'INPUT_TITLE_LINK': '',
+            'INPUT_MESSAGE': 'Notification from GitHub Action',
+            'INPUT_COLOR': '#36a64f',
+            'INPUT_SLACK_TOKEN': 'xoxb-1234',
+            'INPUT_CHANNEL_ID': 'C12345678'
+        }):
+            run.main()
+            mock_send_slack_message.assert_called_once_with(
+                'http://example.com', 'success', 'GitHub Action', '', '', 'Build Notification', '', 'Notification from GitHub Action', '#36a64f', 'xoxb-1234', 'C12345678'
+            )
+            mock_send_reply_message.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()
