@@ -45,9 +45,10 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
         except json.JSONDecodeError:
             raise ValueError(f"Failed to parse JSON response: {response.text}")
 
-    print(f"::set-output name=SLACK_THREAD_TS::{thread_ts}")
-    print(f"::set-output name=SLACK_CHANNEL::{channel}")
-    print(f"::set-output name=SLACK_MESSAGE_ID::{message_id}")
+    with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
+        env_file.write(f"SLACK_THREAD_TS={thread_ts}\n")
+        env_file.write(f"SLACK_CHANNEL={channel}\n")
+        env_file.write(f"SLACK_MESSAGE_ID={message_id}\n")
 
 
 def get_message_ts(slack_token, channel_id, message):

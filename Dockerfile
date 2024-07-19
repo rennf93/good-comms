@@ -10,7 +10,7 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.pip
 
 COPY ./run.py ./run.py
-COPY ./entrypoint.sh /entrypoint.sh
+COPY ./entrypoint.sh ./entrypoint.sh
 
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+RUN chmod +x ./entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
