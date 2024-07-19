@@ -50,6 +50,25 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
         print(f"SLACK_CHANNEL={channel}\n", file=output_file)
         print(f"SLACK_MESSAGE_ID={message_id}\n", file=output_file)
 
+    # Send the same message as a reply
+    send_reply_message(slack_token, channel, thread_ts, message)
+
+def send_reply_message(slack_token, channel, thread_ts, message):
+    url = "https://slack.com/api/chat.postMessage"
+    headers = {
+        "Authorization": f"Bearer {slack_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "channel": channel,
+        "text": message,
+        "thread_ts": thread_ts
+    }
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    print(f"Reply response status code: {response.status_code}")
+    print(f"Reply response text: {response.text}")
+    if response.status_code != 200:
+        raise ValueError(f"Failed to send reply message: {response.status_code}, {response.text}")
 
 def get_message_ts(slack_token, channel_id, message):
     url = "https://slack.com/api/conversations.history"
@@ -59,7 +78,7 @@ def get_message_ts(slack_token, channel_id, message):
     }
     params = {
         "channel": channel_id,
-        "limit": 3
+        "limit": 10
     }
     response = requests.get(url, headers=headers, params=params)
     print(f"Response status code: {response.status_code}")
@@ -80,33 +99,14 @@ def get_message_ts(slack_token, channel_id, message):
         if 'attachments' in msg:
             for attachment in msg['attachments']:
                 print(f"Checking attachment text: {attachment.get('text')}")
-                if message in attachment.get('text', ''):
+                if attachment.get('text') == message:
                     return msg.get('ts')
 
     raise ValueError("Message not found in the channel.")
 
-
-def send_reply_message(slack_token, channel, thread_ts, message):
-    url = "https://slack.com/api/chat.postMessage"
-    headers = {
-        "Authorization": f"Bearer {slack_token}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "channel": channel,
-        "text": message,
-        "thread_ts": thread_ts,
-    }
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-    print(f"Reply response status code: {response.status_code}")
-    print(f"Reply response text: {response.text}")
-    if response.status_code != 200:
-        raise ValueError(f"Failed to send reply message: {response.status_code}, {response.text}")
-
-
 def main():
     webhook_url = os.getenv('INPUT_SLACK_WEBHOOK')
-    status = os.getenv('INPUT_STATUS', 'success')
+    status = os.getenv('INPUT_STATUS')
     author_name = os.getenv('INPUT_AUTHOR_NAME', 'GitHub Action')
     author_link = os.getenv('INPUT_AUTHOR_LINK', '')
     author_icon = os.getenv('INPUT_AUTHOR_ICON', '')
