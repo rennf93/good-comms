@@ -99,7 +99,7 @@ def get_message_ts(slack_token, channel_id, message):
         if 'attachments' in msg:
             for attachment in msg['attachments']:
                 print(f"Checking attachment text: {attachment.get('text')}")
-                if attachment.get('text') == message:
+                if message in attachment.get('text', ''):
                     return msg.get('ts')
 
     raise ValueError("Message not found in the channel.")
