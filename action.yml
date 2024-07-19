@@ -40,16 +40,15 @@ inputs:
 outputs:
   SLACK_THREAD_TS:
     description: 'Timestamp of the Slack message thread'
-    value: ${{ steps.send_slack.outputs.SLACK_THREAD_TS }}
   SLACK_CHANNEL:
     description: 'Slack channel where the message was sent'
-    value: ${{ steps.send_slack.outputs.SLACK_CHANNEL }}
   SLACK_MESSAGE_ID:
     description: 'ID of the Slack message'
-    value: ${{ steps.send_slack.outputs.SLACK_MESSAGE_ID }}
+
 runs:
-  using: 'composite'
-  steps:
-    - name: Send Slack Notification
-      shell: bash
-      run: ./entrypoint.sh
+  using: 'docker'
+  image: 'Dockerfile'
+
+branding:
+  icon: 'inbox'
+  color: 'black'
