@@ -39,10 +39,18 @@ fi
 output=$(python3 /usr/src/app/run.py)
 
 # Mask the output in the logs
-echo "::add-mask::$output"
+# echo "::add-mask::$output"
 
 # Debugging: Print the output to check its content
 echo "Output from Python script: $output"
 
+# Debugging: Print the content of the GITHUB_ENV file before writing
+echo "Content of GITHUB_ENV before writing:"
+cat $GITHUB_ENV
+
 # Set the output as environment variables
 echo "$output" >> $GITHUB_ENV
+
+# Debugging: Print the content of the GITHUB_ENV file after writing
+echo "Content of GITHUB_ENV after writing:"
+cat $GITHUB_ENV
