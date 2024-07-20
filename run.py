@@ -49,6 +49,11 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
     print(f"::set-output name=SLACK_CHANNEL::{channel}")
     print(f"::set-output name=SLACK_MESSAGE_ID::{message_id}")
 
+    with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
+        env_file.write(f"SLACK_THREAD_TS={thread_ts}\n")
+        env_file.write(f"SLACK_CHANNEL={channel}\n")
+        env_file.write(f"SLACK_MESSAGE_ID={message_id}\n")
+
 
 def send_reply_message(slack_token, channel, thread_ts, message):
     url = "https://slack.com/api/chat.postMessage"
