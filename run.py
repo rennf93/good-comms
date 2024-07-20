@@ -11,6 +11,8 @@ def sanitize_value(value):
 
 def send_slack_message(webhook_url, status, author_name, author_link, author_icon, title, title_link, message, color, slack_token, channel_id):
     payload = {
+        "username": author_name,
+        "icon_url": author_icon,
         "attachments": [
             {
                 "fallback": message,

@@ -47,6 +47,8 @@ class TestRun(unittest.TestCase):
 
         # Check that the post request was called with the correct payload
         expected_payload = {
+            "username": "GitHub Action",
+            "icon_url": "",
             "attachments": [
                 {
                     "fallback": "Notification from GitHub Action",
