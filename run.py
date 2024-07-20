@@ -50,10 +50,6 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
         except json.JSONDecodeError:
             raise ValueError(f"Failed to parse JSON response: {response.text}")
 
-    print(f"::set-output name=SLACK_THREAD_TS::{thread_ts}")
-    print(f"::set-output name=SLACK_CHANNEL::{channel}")
-    print(f"::set-output name=SLACK_MESSAGE_ID::{message_id}")
-
     if not thread_ts:
         raise ValueError("thread_ts is not set")
     if not channel:
