@@ -67,25 +67,12 @@ class TestRun(unittest.TestCase):
                 }
             ]
         }
-        expected_reply_payload = {
-            "channel": "C12345678",
-            "text": "Notification from GitHub Action",
-            "thread_ts": "1234567890.123456",
-        }
 
-        self.assertEqual(mock_post.call_count, 2)
-        mock_post.assert_any_call(
+        self.assertEqual(mock_post.call_count, 1)
+        mock_post.assert_called_once_with(
             "http://example.com",
             data=json.dumps(expected_payload),
             headers={'Content-Type': 'application/json'}
-        )
-        mock_post.assert_any_call(
-            "https://slack.com/api/chat.postMessage",
-            headers={
-                "Authorization": "Bearer xoxb-1234",
-                "Content-Type": "application/json"
-            },
-            data=json.dumps(expected_reply_payload)
         )
         self.assertTrue(mock_get_message_ts.called)
         self.assertEqual(mock_get_message_ts.call_count, 1)
@@ -155,7 +142,7 @@ class TestRun(unittest.TestCase):
             },
             params={
                 "channel": "C12345678",
-                "limit": 10
+                "limit": 1
             }
         )
         self.assertTrue(mock_get.called)
