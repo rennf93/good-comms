@@ -40,8 +40,8 @@ This action sets the following outputs:
 To use this action in your workflow, add the following step:
 
 ```yaml
-- name: Send Slack Notification
-  uses: your-username/slack-notification-action@v1
+- name: Send Slack Communication
+  uses: rennf93/good-comms@v1
   with:
     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
     STATUS: 'success'
@@ -70,14 +70,14 @@ on:
       - main
 
 jobs:
-  notify:
+  send-slack-comms:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Send Slack Notification
-        uses: your-username/slack-notification-action@v1
+      - name: Send Slack Communication
+        uses: rennf93/good-comms@v1
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           STATUS: 'success'

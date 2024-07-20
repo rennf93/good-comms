@@ -8,6 +8,7 @@ import time
 def sanitize_value(value):
     return value.replace('\n', '').replace('\r', '').replace('=', '')
 
+
 def send_slack_message(webhook_url, status, author_name, author_link, author_icon, title, title_link, message, color, slack_token, channel_id):
     payload = {
         "attachments": [
@@ -24,6 +25,16 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
                     {
                         "title": "Status",
                         "value": status,
+                        "short": False
+                    },
+                    {
+                        "title": "Commit message",
+                        "value": message,
+                        "short": False
+                    },
+                    {
+                        "title": "Commit URL",
+                        "value": title_link,
                         "short": False
                     }
                 ]
@@ -67,8 +78,6 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
     if not github_env_path:
         raise ValueError("GITHUB_ENV environment variable is not set")
 
-    print(f"Writing to GITHUB_ENV: SLACK_THREAD_TS={thread_ts}, SLACK_CHANNEL={channel}, SLACK_MESSAGE_ID={message_id}")
-
     with open(github_env_path, 'a') as env_file:
         env_file.write(f"SLACK_THREAD_TS={thread_ts}\n")
         env_file.write(f"SLACK_CHANNEL={channel}\n")
@@ -94,6 +103,7 @@ def send_reply_message(slack_token, channel, thread_ts, message):
     print(f"Reply response text: {response.text}")
     if response.status_code != 200:
         raise ValueError(f"Failed to send reply message: {response.status_code}, {response.text}")
+
 
 def get_message_ts(slack_token, channel_id, message):
     url = "https://slack.com/api/conversations.history"
@@ -136,6 +146,7 @@ def get_message_ts(slack_token, channel_id, message):
 
     raise ValueError("Message not found in the channel.")
 
+
 def main():
     webhook_url = os.getenv('INPUT_SLACK_WEBHOOK')
     status = os.getenv('INPUT_STATUS')
@@ -154,6 +165,7 @@ def main():
         send_reply_message(slack_token, channel_id, thread_ts, message)
     else:
         send_slack_message(webhook_url, status, author_name, author_link, author_icon, title, title_link, message, color, slack_token, channel_id)
+
 
 if __name__ == "__main__":
     main()

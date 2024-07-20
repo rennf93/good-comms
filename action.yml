@@ -1,5 +1,5 @@
-name: 'Slack Notify Action'
-description: 'A GitHub Action to send notifications to Slack'
+name: 'Good Comms'
+description: 'A GitHub Action to send communications to Slack channels'
 inputs:
   SLACK_WEBHOOK:
     description: 'Slack Webhook URL'
