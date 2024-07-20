@@ -62,6 +62,16 @@ class TestRun(unittest.TestCase):
                             "title": "Status",
                             "value": "success",
                             "short": False
+                        },
+                        {
+                            "title": "Commit message",
+                            "value": "Notification from GitHub Action",
+                            "short": False
+                        },
+                        {
+                            "title": "Commit URL",
+                            "value": "",
+                            "short": False
                         }
                     ]
                 }
