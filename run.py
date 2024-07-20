@@ -94,13 +94,19 @@ def get_message_ts(slack_token, channel_id, message):
     if not messages:
         raise ValueError("No messages found in the channel.")
 
+    def normalize_text(text):
+        return text.replace('\n', '').replace(' ', '').lower()
+
+    normalized_message = normalize_text(message)
+
     for msg in messages:
         print(f"Checking message: {msg.get('text')}")
         if 'attachments' in msg:
             for attachment in msg['attachments']:
                 attachment_text = attachment.get('text', attachment.get('fallback', ''))
-                print(f"Checking attachment text: {attachment_text}")
-                if message in attachment_text or message in msg.get('text', ''):
+                normalized_attachment_text = normalize_text(attachment_text)
+                print(f"Checking normalized attachment text: {normalized_attachment_text}")
+                if normalized_message in normalized_attachment_text:
                     return msg.get('ts')
 
     raise ValueError("Message not found in the channel.")
