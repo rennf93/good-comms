@@ -3,6 +3,11 @@ import requests
 import json
 import time
 
+
+
+def sanitize_value(value):
+    return value.replace('\n', '').replace('\r', '').replace('=', '')
+
 def send_slack_message(webhook_url, status, author_name, author_link, author_icon, title, title_link, message, color, slack_token, channel_id):
     payload = {
         "attachments": [
@@ -56,15 +61,25 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
     if not message_id:
         raise ValueError("message_id is not set")
 
+    # Sanitize values
+    thread_ts = sanitize_value(thread_ts)
+    channel = sanitize_value(channel)
+    message_id = sanitize_value(message_id)
+
     # Write environment variables to the GITHUB_ENV file
     github_env_path = os.getenv('GITHUB_ENV')
     if not github_env_path:
         raise ValueError("GITHUB_ENV environment variable is not set")
 
+    print(f"Writing to GITHUB_ENV: SLACK_THREAD_TS={thread_ts}, SLACK_CHANNEL={channel}, SLACK_MESSAGE_ID={message_id}")
+
     with open(github_env_path, 'a') as env_file:
         env_file.write(f"SLACK_THREAD_TS={thread_ts}\n")
         env_file.write(f"SLACK_CHANNEL={channel}\n")
         env_file.write(f"SLACK_MESSAGE_ID={message_id}\n")
+
+    # Return the output in the correct format
+    return f"SLACK_THREAD_TS={thread_ts}\nSLACK_CHANNEL={channel}\nSLACK_MESSAGE_ID={message_id}\n"
 
 
 def send_reply_message(slack_token, channel, thread_ts, message):
