@@ -62,40 +62,6 @@ def get_env(name, default=""):
     return os.getenv(name, default).strip()
 
 
-def send(endpoint, msg):
-    try:
-        payload = json.dumps(msg, default=lambda o: o.__dict__)
-        logging.info(f"Payload: {payload}")
-        return send_raw(endpoint, payload.encode())
-    except Exception as err:
-        logging.error(f"Error in send: {err}")
-        return err
-
-
-def send_raw(endpoint, payload):
-    try:
-        headers = {"Content-Type": "application/json"}
-        if get_env("MSG_MODE") == "WEBHOOK":
-            response = requests.post(endpoint, data=payload, headers=headers)
-        elif get_env("MSG_MODE") == "TOKEN":
-            headers["Authorization"] = f"Bearer {get_env('SLACK_TOKEN')}"
-            response = requests.post(endpoint, data=payload, headers=headers)
-        else:
-            logging.error(f"Invalid message mode: {get_env('MSG_MODE')}")
-            sys.exit(6)
-
-        if response.status_code >= 299:
-            logging.error(f"Response: {response.text}")
-            return f"Error on message: {response.status_code}"
-
-        if get_env("SLACK_FILE_UPLOAD"):
-            return send_file(get_env("SLACK_FILE_UPLOAD"), "", get_env("SLACK_CHANNEL"), get_env("SLACK_THREAD_TS"))
-
-    except Exception as err:
-        logging.error(f"Error in send_raw: {err}")
-        return err
-
-
 def send_file(filename, message, channel, thread_ts):
     try:
         with open(filename, 'rb') as file:
@@ -224,7 +190,8 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
     response = requests.post(webhook_url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
-        raise ValueError(f"Request to Slack returned an error {response.status_code}, the response is:\n{response.text}")
+        logging.error(f"Request to Slack returned an error {response.status_code}, the response is:\n{response.text}")
+        return f"Error on message: {response.status_code}"
 
     if response.text.strip() == "ok":
         logging.info("Message sent successfully, but no JSON response to parse.")
@@ -240,14 +207,18 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
             channel = response_data.get('channel')
             message_id = response_data.get('message', {}).get('ts', thread_ts)
         except json.JSONDecodeError:
-            raise ValueError(f"Failed to parse JSON response: {response.text}")
+            logging.error(f"Failed to parse JSON response: {response.text}")
+            return f"Error on message: {response.status_code}"
 
     if not thread_ts:
-        raise ValueError("thread_ts is not set")
+        logging.error("thread_ts is not set")
+        return "thread_ts is not set"
     if not channel:
-        raise ValueError("channel is not set")
+        logging.error("channel is not set")
+        return "channel is not set"
     if not message_id:
-        raise ValueError("message_id is not set")
+        logging.error("message_id is not set")
+        return "message_id is not set"
 
     # Sanitize values
     thread_ts = sanitize_value(thread_ts)
@@ -316,22 +287,9 @@ def build_attachments(text, color, fields):
     ]
 
 
-def create_webhook_message(text, color, fields, thread_ts=None):
-    return Webhook(
-        username=get_env("SLACK_USERNAME"),
-        icon_url=get_env("SLACK_ICON"),
-        icon_emoji=get_env("SLACK_ICON_EMOJI"),
-        channel=get_env("SLACK_CHANNEL"),
-        link_names=get_env("SLACK_LINK_NAMES"),
-        thread_ts=thread_ts,
-        attachments=build_attachments(text, color, fields)
-    )
-
-
 def main():
     endpoint = get_env("SLACK_WEBHOOK")
     custom_payload = get_env("SLACK_CUSTOM_PAYLOAD", "")
-    err = None
     if not endpoint:
         if not get_env("SLACK_CHANNEL"):
             logging.error("Channel is required for sending message using a token")
@@ -342,9 +300,9 @@ def main():
             logging.error("URL is required")
             sys.exit(2)
     if custom_payload:
-        err = send_raw(endpoint, custom_payload.encode())
-        if err:
-            logging.error(f"Error sending message: {err}")
+        response = requests.post(endpoint, data=custom_payload.encode(), headers={"Content-Type": "application/json"})
+        if response.status_code != 200:
+            logging.error(f"Error sending custom payload: {response.status_code}, {response.text}")
             sys.exit(2)
     else:
         text = get_env("SLACK_MESSAGE")
@@ -361,12 +319,12 @@ def main():
         long_sha = get_env("GITHUB_SHA")
         commit_sha = long_sha[:6]
 
-        slack_color = get_env("SLACK_COLOR").lower()
+        slack_color = get_env("COLOR").lower()
         color = {
             "success": "good",
             "cancelled": "#808080",
             "failure": "danger"
-        }.get(slack_color, get_env("SLACK_COLOR", "good"))
+        }.get(slack_color, get_env("COLOR", "good"))
 
         if slack_color == "success":
             text = get_env("SLACK_MESSAGE_ON_SUCCESS", text)
@@ -378,16 +336,10 @@ def main():
         if not text:
             text = "EOM"
 
-        fields = build_fields(text, commit_sha)
+        # fields = build_fields(text, commit_sha)
         thread_ts = get_env("SLACK_THREAD_TS")
-        # msg = create_webhook_message(text, color, fields, thread_ts if thread_ts else None)
 
-        # err = send(endpoint, msg)
-        # if err:
-        #     logging.error(f"Error sending message: {err}")
-        #     sys.exit(1)
-
-        send_slack_message(
+        err = send_slack_message(
             webhook_url=endpoint,
             status=get_env("STATUS"),
             author_name=get_env("AUTHOR_NAME"),
@@ -401,6 +353,9 @@ def main():
             channel_id=get_env("CHANNEL_ID"),
             thread_ts=thread_ts if thread_ts else None
         )
+        if err:
+            logging.error(f"Error sending message: {err}")
+            sys.exit(1)
 
     logging.info("Successfully sent the message!")
 

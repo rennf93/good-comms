@@ -255,9 +255,11 @@ class TestRun(unittest.TestCase):
             'SLACK_MESSAGE': 'Notification from GitHub Action',
             'MSG_MODE': 'WEBHOOK'
         }):
-            run.main()
+            with self.assertRaises(SystemExit) as cm:
+                run.main()
+            self.assertEqual(cm.exception.code, 1)
             mock_send_slack_message.assert_called_once_with(
-                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='good', slack_token='xoxb-1234', channel_id='C12345678', thread_ts='1234567890.123456'
+                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='#36a64f', slack_token='xoxb-1234', channel_id='C12345678', thread_ts='1234567890.123456'
             )
 
     @patch('run.send_slack_message')
@@ -277,9 +279,11 @@ class TestRun(unittest.TestCase):
             'SLACK_MESSAGE': 'Notification from GitHub Action',
             'MSG_MODE': 'WEBHOOK'
         }):
-            run.main()
+            with self.assertRaises(SystemExit) as cm:
+                run.main()
+            self.assertEqual(cm.exception.code, 1)
             mock_send_slack_message.assert_called_once_with(
-                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='good', slack_token='xoxb-1234', channel_id='C12345678', thread_ts=None
+                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='#36a64f', slack_token='xoxb-1234', channel_id='C12345678', thread_ts=None
             )
 
 if __name__ == '__main__':
