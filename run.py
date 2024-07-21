@@ -139,9 +139,9 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
             {
                 "fallback": message,
                 "color": color,
-                "author_name": author_name,
-                "author_link": author_link,
-                "author_icon": author_icon,
+                "author_name": get_env("GITHUB_ACTOR", ""),
+                "author_link": f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}",
+                "author_icon": f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}.png?size=32",
                 "title": title,
                 "title_link": title_link,
                 "fields": [

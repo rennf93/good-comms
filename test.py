@@ -55,9 +55,9 @@ class TestRun(unittest.TestCase):
                 {
                     "fallback": "Notification from GitHub Action",
                     "color": "#36a64f",
-                    "author_name": "GitHub Action",
-                    "author_link": "",
-                    "author_icon": "",
+                    "author_name": os.getenv("GITHUB_ACTOR", ""),
+                    "author_link": f"{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_ACTOR', '')}",
+                    "author_icon": f"{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_ACTOR', '')}.png?size=32",
                     "title": "Build Notification",
                     "title_link": "",
                     "fields": [
@@ -142,9 +142,9 @@ class TestRun(unittest.TestCase):
                 {
                     "fallback": "Reply message",
                     "color": "#36a64f",
-                    "author_name": "GitHub Action",
-                    "author_link": "",
-                    "author_icon": "",
+                    "author_name": os.getenv("GITHUB_ACTOR", ""),
+                    "author_link": f"{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_ACTOR', '')}",
+                    "author_icon": f"{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_ACTOR', '')}.png?size=32",
                     "title": "Build Notification",
                     "title_link": "",
                     "fields": [
