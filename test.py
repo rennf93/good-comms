@@ -279,7 +279,7 @@ class TestRun(unittest.TestCase):
         }):
             run.main()
             mock_send_slack_message.assert_called_once_with(
-                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='good', slack_token='xoxb-1234', channel_id='C12345678', thread_ts=''
+                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='good', slack_token='xoxb-1234', channel_id='C12345678'
             )
 
 if __name__ == '__main__':
