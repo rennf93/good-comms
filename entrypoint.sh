@@ -1,6 +1,5 @@
 #!/bin/sh -l
 
-# Extract inputs from 'with' GitHub context using the INPUT_ prefix
 export SLACK_WEBHOOK="${INPUT_SLACK_WEBHOOK}"
 export STATUS="${INPUT_STATUS}"
 export AUTHOR_NAME="${INPUT_AUTHOR_NAME:-"GitHub Action"}"
@@ -14,7 +13,7 @@ export SLACK_TOKEN="${INPUT_SLACK_TOKEN}"
 export CHANNEL_ID="${INPUT_CHANNEL_ID}"
 export MSG_MODE="${INPUT_MSG_MODE:-"WEBHOOK"}"
 
-# Check if required inputs are provided
+
 if [ -z "$SLACK_WEBHOOK" ]; then
   echo "SLACK_WEBHOOK is a required input and must be set."
   exit 1
@@ -35,25 +34,19 @@ if [ -z "$CHANNEL_ID" ]; then
   exit 1
 fi
 
-# Ensure SLACK_MESSAGE is set
 if [ -z "$SLACK_MESSAGE" ]; then
   echo "SLACK_MESSAGE is a required input and must be set."
   exit 1
 fi
 
-# Set SLACK_THREAD_TS if provided
 if [ -n "$INPUT_SLACK_THREAD_TS" ]; then
   export SLACK_THREAD_TS="${INPUT_SLACK_THREAD_TS}"
 fi
 
-# Run the Python script with the provided inputs and capture the output
 output=$(python3 /usr/src/app/run.py)
 
-# Mask the output in the logs
 echo "::add-mask::$output"
 
-# Extract environment variables from the output
 env_vars=$(echo "$output" | grep -E 'SLACK_THREAD_TS|SLACK_CHANNEL|SLACK_MESSAGE_ID')
 
-# Set the output as environment variables
 echo "$env_vars" >> $GITHUB_ENV

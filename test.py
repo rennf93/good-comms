@@ -4,6 +4,7 @@ import run
 import json
 import os
 
+
 class TestRun(unittest.TestCase):
 
     @patch('run.get_message_ts')
@@ -11,11 +12,9 @@ class TestRun(unittest.TestCase):
     @patch('run.requests.get')
     @patch.dict(os.environ, {'GITHUB_OUTPUT': '/tmp/github_output'})
     def test_send_slack_message(self, mock_get, mock_post, mock_get_message_ts):
-        # Mock the response for the post request
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = 'ok'
 
-        # Mock the response for the get request
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {
             "ok": True,
@@ -27,10 +26,8 @@ class TestRun(unittest.TestCase):
             ]
         }
 
-        # Mock the get_message_ts function
         mock_get_message_ts.return_value = "1234567890.123456"
 
-        # Call the function
         response = run.send_slack_message(
             webhook_url="http://example.com",
             status="success",
@@ -45,7 +42,6 @@ class TestRun(unittest.TestCase):
             channel_id="C12345678"
         )
 
-        # Check that the post request was called with the correct payload
         expected_payload = {
             "username": "GitHub Action",
             "icon_url": "",
@@ -112,11 +108,9 @@ class TestRun(unittest.TestCase):
 
     @patch('run.requests.post')
     def test_send_reply_message(self, mock_post):
-        # Mock the response for the post request
         mock_post.return_value.status_code = 200
         mock_post.return_value.text = 'ok'
 
-        # Call the function
         response = run.send_slack_message(
             webhook_url="http://example.com",
             status="success",
@@ -132,7 +126,6 @@ class TestRun(unittest.TestCase):
             thread_ts="1234567890.123456"
         )
 
-        # Check that the post request was called with the correct payload
         expected_payload = {
             "username": "GitHub Action",
             "icon_url": "",
@@ -198,7 +191,6 @@ class TestRun(unittest.TestCase):
 
     @patch('run.requests.get')
     def test_get_message_ts(self, mock_get):
-        # Mock the response for the get request
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {
             "ok": True,
@@ -215,14 +207,12 @@ class TestRun(unittest.TestCase):
             ]
         }
 
-        # Call the function
         ts = run.get_message_ts(
             slack_token="xoxb-1234",
             channel_id="C12345678",
             message="Notification from GitHub Action"
         )
 
-        # Check that the get request was called with the correct parameters
         mock_get.assert_called_once_with(
             "https://slack.com/api/conversations.history",
             headers={

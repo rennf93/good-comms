@@ -220,12 +220,10 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
         logging.error("message_id is not set")
         return "message_id is not set"
 
-    # Sanitize values
     thread_ts = sanitize_value(thread_ts)
     channel = sanitize_value(channel)
     message_id = sanitize_value(message_id)
 
-    # Write environment variables to the GITHUB_ENV file if it exists
     github_env_path = os.getenv('GITHUB_ENV')
     if github_env_path:
         with open(github_env_path, 'a') as env_file:
@@ -233,7 +231,6 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
             env_file.write(f"SLACK_CHANNEL={channel}\n")
             env_file.write(f"SLACK_MESSAGE_ID={message_id}\n")
 
-    # Return the output in the correct format
     return f"SLACK_THREAD_TS={thread_ts}\nSLACK_CHANNEL={channel}\nSLACK_MESSAGE_ID={message_id}\n"
 
 

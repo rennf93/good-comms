@@ -2,6 +2,8 @@
 
 This GitHub Action sends notifications to a Slack channel. It can send a new message or reply to an existing thread based on the provided inputs.
 
+Inspired by [rtCamp/action-slack-notify](https://github.com/rtCamp/action-slack-notify).
+
 ## Features
 
 - Send a new message to a Slack channel.
@@ -51,7 +53,7 @@ To use this action in your workflow, add the following step:
     TITLE: 'Build Notification'
     TITLE_LINK: 'https://github.com'
     MESSAGE: 'Your build has completed successfully!'
-    COLOR: '#36a64f'
+    COLOR: 'warning'
     SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
     CHANNEL_ID: 'C12345678'
     SLACK_THREAD_TS: ${{ steps.previous-step.outputs.SLACK_THREAD_TS }}
@@ -87,7 +89,7 @@ jobs:
           TITLE: 'Build Notification'
           TITLE_LINK: 'https://github.com'
           MESSAGE: 'Your build has completed successfully!'
-          COLOR: '#36a64f'
+          COLOR: 'good'
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           CHANNEL_ID: 'C12345678'
           SLACK_THREAD_TS: ${{ steps.previous-step.outputs.SLACK_THREAD_TS }}
