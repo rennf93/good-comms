@@ -13,6 +13,7 @@ export COLOR="${INPUT_COLOR:-"#36a64f"}"
 export SLACK_TOKEN="${INPUT_SLACK_TOKEN}"
 export CHANNEL_ID="${INPUT_CHANNEL_ID}"
 export SLACK_THREAD_TS="${INPUT_SLACK_THREAD_TS}"
+export MSG_MODE="${INPUT_MSG_MODE:-"WEBHOOK"}"
 
 # Check if required inputs are provided
 if [ -z "$SLACK_WEBHOOK" ]; then
