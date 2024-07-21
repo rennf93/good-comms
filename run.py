@@ -263,10 +263,10 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
     # Return the output in the correct format
     return f"SLACK_THREAD_TS={thread_ts}\nSLACK_CHANNEL={channel}\nSLACK_MESSAGE_ID={message_id}\n"
 
-
 def main():
     endpoint = get_env("SLACK_WEBHOOK")
     custom_payload = get_env("SLACK_CUSTOM_PAYLOAD", "")
+    err = None
     if not endpoint:
         if not get_env("SLACK_CHANNEL"):
             logging.error("Channel is required for sending message using a token")
@@ -277,7 +277,8 @@ def main():
             logging.error("URL is required")
             sys.exit(2)
     if custom_payload:
-        if send_raw(endpoint, custom_payload.encode()):
+        err = send_raw(endpoint, custom_payload.encode())
+        if err:
             logging.error(f"Error sending message: {err}")
             sys.exit(2)
     else:
@@ -369,7 +370,8 @@ def main():
             ]
         )
 
-        if send(endpoint, msg):
+        err = send(endpoint, msg)
+        if err:
             logging.error(f"Error sending message: {err}")
             sys.exit(1)
 
@@ -389,7 +391,6 @@ def main():
         )
 
     logging.info("Successfully sent the message!")
-
 
 if __name__ == "__main__":
     main()
