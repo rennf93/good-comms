@@ -351,33 +351,54 @@ def main():
             ]
             fields.extend(new_fields)
 
-        msg = Webhook(
-            username=get_env("SLACK_USERNAME"),
-            icon_url=get_env("SLACK_ICON"),
-            icon_emoji=get_env("SLACK_ICON_EMOJI"),
-            channel=get_env("SLACK_CHANNEL"),
-            link_names=get_env("SLACK_LINK_NAMES"),
-            thread_ts=get_env("SLACK_THREAD_TS"),
-            attachments=[
-                Attachment(
-                    fallback=get_env("SLACK_MESSAGE", f"GITHUB_ACTION={get_env('GITHUB_ACTION')} \n GITHUB_ACTOR={get_env('GITHUB_ACTOR')} \n GITHUB_EVENT_NAME={get_env('GITHUB_EVENT_NAME')} \n GITHUB_REF={get_env('GITHUB_REF')} \n GITHUB_REPOSITORY={get_env('GITHUB_REPOSITORY')} \n GITHUB_WORKFLOW={get_env('GITHUB_WORKFLOW')}"
-                    ),
-                    color=color,
-                    author_name=get_env("GITHUB_ACTOR", ""),
-                    author_link=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}",
-                    author_icon=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}.png?size=32",
-                    footer=get_env("SLACK_FOOTER", f"<{get_env('GITHUB_RUN_URL')}|Triggered on this workflow run>"),
-                    fields=fields
-                )
-            ]
-        )
+        thread_ts = get_env("SLACK_THREAD_TS")
+        if thread_ts:
+            msg = Webhook(
+                username=get_env("SLACK_USERNAME"),
+                icon_url=get_env("SLACK_ICON"),
+                icon_emoji=get_env("SLACK_ICON_EMOJI"),
+                channel=get_env("SLACK_CHANNEL"),
+                link_names=get_env("SLACK_LINK_NAMES"),
+                thread_ts=get_env("SLACK_THREAD_TS"),
+                attachments=[
+                    Attachment(
+                        fallback=get_env("SLACK_MESSAGE", f"GITHUB_ACTION={get_env('GITHUB_ACTION')} \n GITHUB_ACTOR={get_env('GITHUB_ACTOR')} \n GITHUB_EVENT_NAME={get_env('GITHUB_EVENT_NAME')} \n GITHUB_REF={get_env('GITHUB_REF')} \n GITHUB_REPOSITORY={get_env('GITHUB_REPOSITORY')} \n GITHUB_WORKFLOW={get_env('GITHUB_WORKFLOW')}"
+                        ),
+                        color=color,
+                        author_name=get_env("GITHUB_ACTOR", ""),
+                        author_link=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}",
+                        author_icon=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}.png?size=32",
+                        footer=get_env("SLACK_FOOTER", f"<{get_env('GITHUB_RUN_URL')}|Triggered on this workflow run>"),
+                        fields=fields
+                    )
+                ]
+            )
+        else:
+            msg = Webhook(
+                username=get_env("SLACK_USERNAME"),
+                icon_url=get_env("SLACK_ICON"),
+                icon_emoji=get_env("SLACK_ICON_EMOJI"),
+                channel=get_env("SLACK_CHANNEL"),
+                link_names=get_env("SLACK_LINK_NAMES"),
+                attachments=[
+                    Attachment(
+                        fallback=get_env("SLACK_MESSAGE", f"GITHUB_ACTION={get_env('GITHUB_ACTION')} \n GITHUB_ACTOR={get_env('GITHUB_ACTOR')} \n GITHUB_EVENT_NAME={get_env('GITHUB_EVENT_NAME')} \n GITHUB_REF={get_env('GITHUB_REF')} \n GITHUB_REPOSITORY={get_env('GITHUB_REPOSITORY')} \n GITHUB_WORKFLOW={get_env('GITHUB_WORKFLOW')}"
+                        ),
+                        color=color,
+                        author_name=get_env("GITHUB_ACTOR", ""),
+                        author_link=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}",
+                        author_icon=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}.png?size=32",
+                        footer=get_env("SLACK_FOOTER", f"<{get_env('GITHUB_RUN_URL')}|Triggered on this workflow run>"),
+                        fields=fields
+                    )
+                ]
+            )
 
         err = send(endpoint, msg)
         if err:
             logging.error(f"Error sending message: {err}")
             sys.exit(1)
 
-        thread_ts = get_env("SLACK_THREAD_TS")
         if thread_ts:
             send_slack_message(
                 webhook_url=endpoint,
