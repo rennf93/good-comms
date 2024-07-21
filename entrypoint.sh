@@ -35,6 +35,12 @@ if [ -z "$CHANNEL_ID" ]; then
   exit 1
 fi
 
+# Ensure MESSAGE is set
+if [ -z "$MESSAGE" ]; then
+  echo "MESSAGE is a required input and must be set."
+  exit 1
+fi
+
 # Run the Python script with the provided inputs and capture the output
 output=$(python3 /usr/src/app/run.py)
 
