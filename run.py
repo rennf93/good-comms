@@ -366,7 +366,7 @@ def main():
                     author_name=get_env("GITHUB_ACTOR", ""),
                     author_link=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}",
                     author_icon=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}.png?size=32",
-                    footer=get_env("SLACK_FOOTER", f"<https://github.com/rtCamp/github-actions-library|Powered By rtCamp's GitHub Actions Library> | <{get_env('GITHUB_RUN')}|Triggered on this workflow run>"),
+                    footer=get_env("SLACK_FOOTER", f"<{get_env('GITHUB_RUN_URL')}|Triggered on this workflow run>"),
                     fields=fields
                 )
             ]
@@ -377,20 +377,36 @@ def main():
             logging.error(f"Error sending message: {err}")
             sys.exit(1)
 
-        send_slack_message(
-            webhook_url=endpoint,
-            status=get_env("STATUS"),
-            author_name=get_env("AUTHOR_NAME"),
-            author_link=get_env("AUTHOR_LINK"),
-            author_icon=get_env("AUTHOR_ICON"),
-            title=get_env("TITLE"),
-            title_link=get_env("TITLE_LINK"),
-            message=text,
-            color=color,
-            slack_token=get_env("SLACK_TOKEN"),
-            channel_id=get_env("CHANNEL_ID"),
-            thread_ts=get_env("SLACK_THREAD_TS")
-        )
+        thread_ts = get_env("SLACK_THREAD_TS")
+        if thread_ts:
+            send_slack_message(
+                webhook_url=endpoint,
+                status=get_env("STATUS"),
+                author_name=get_env("AUTHOR_NAME"),
+                author_link=get_env("AUTHOR_LINK"),
+                author_icon=get_env("AUTHOR_ICON"),
+                title=get_env("TITLE"),
+                title_link=get_env("TITLE_LINK"),
+                message=text,
+                color=color,
+                slack_token=get_env("SLACK_TOKEN"),
+                channel_id=get_env("CHANNEL_ID"),
+                thread_ts=thread_ts
+            )
+        else:
+            send_slack_message(
+                webhook_url=endpoint,
+                status=get_env("STATUS"),
+                author_name=get_env("AUTHOR_NAME"),
+                author_link=get_env("AUTHOR_LINK"),
+                author_icon=get_env("AUTHOR_ICON"),
+                title=get_env("TITLE"),
+                title_link=get_env("TITLE_LINK"),
+                message=text,
+                color=color,
+                slack_token=get_env("SLACK_TOKEN"),
+                channel_id=get_env("CHANNEL_ID")
+            )
 
     logging.info("Successfully sent the message!")
 
