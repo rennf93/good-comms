@@ -31,7 +31,7 @@ class TestRun(unittest.TestCase):
         mock_get_message_ts.return_value = "1234567890.123456"
 
         # Call the function
-        run.send_slack_message(
+        response = run.send_slack_message(
             webhook_url="http://example.com",
             status="success",
             author_name="GitHub Action",
@@ -49,6 +49,8 @@ class TestRun(unittest.TestCase):
         expected_payload = {
             "username": "GitHub Action",
             "icon_url": "",
+            "icon_emoji": "",
+            "channel": "C12345678",
             "attachments": [
                 {
                     "fallback": "Notification from GitHub Action",
@@ -58,22 +60,41 @@ class TestRun(unittest.TestCase):
                     "author_icon": "",
                     "title": "Build Notification",
                     "title_link": "",
-                    "text": "Notification from GitHub Action",
                     "fields": [
                         {
-                            "title": "Status",
-                            "value": "success",
-                            "short": False
+                            "title": "Ref",
+                            "value": os.getenv("GITHUB_REF", ""),
+                            "short": True
                         },
                         {
-                            "title": "Commit message",
+                            "title": "Event",
+                            "value": os.getenv("GITHUB_EVENT_NAME", ""),
+                            "short": True
+                        },
+                        {
+                            "title": "Actions URL",
+                            "value": f"<{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_REPOSITORY', '')}/commit/{os.getenv('GITHUB_SHA', '')}/checks|{os.getenv('GITHUB_WORKFLOW', '')}>",
+                            "short": True
+                        },
+                        {
+                            "title": "Commit",
+                            "value": f"<{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_REPOSITORY', '')}/commit/{os.getenv('GITHUB_SHA', '')}|{os.getenv('GITHUB_SHA', '')[:6]}>",
+                            "short": True
+                        },
+                        {
+                            "title": "Message",
                             "value": "Notification from GitHub Action",
                             "short": False
                         },
                         {
+                            "title": "Status",
+                            "value": "success",
+                            "short": True
+                        },
+                        {
                             "title": "Commit URL",
                             "value": "",
-                            "short": False
+                            "short": True
                         }
                     ]
                 }
@@ -96,26 +117,82 @@ class TestRun(unittest.TestCase):
         mock_post.return_value.text = 'ok'
 
         # Call the function
-        run.send_reply_message(
+        response = run.send_slack_message(
+            webhook_url="http://example.com",
+            status="success",
+            author_name="GitHub Action",
+            author_link="",
+            author_icon="",
+            title="Build Notification",
+            title_link="",
+            message="Reply message",
+            color="#36a64f",
             slack_token="xoxb-1234",
-            channel="C12345678",
-            thread_ts="1234567890.123456",
-            message="Reply message"
+            channel_id="C12345678",
+            thread_ts="1234567890.123456"
         )
 
         # Check that the post request was called with the correct payload
         expected_payload = {
+            "username": "GitHub Action",
+            "icon_url": "",
+            "icon_emoji": "",
             "channel": "C12345678",
-            "text": "Reply message",
-            "thread_ts": "1234567890.123456",
+            "attachments": [
+                {
+                    "fallback": "Reply message",
+                    "color": "#36a64f",
+                    "author_name": "GitHub Action",
+                    "author_link": "",
+                    "author_icon": "",
+                    "title": "Build Notification",
+                    "title_link": "",
+                    "fields": [
+                        {
+                            "title": "Ref",
+                            "value": os.getenv("GITHUB_REF", ""),
+                            "short": True
+                        },
+                        {
+                            "title": "Event",
+                            "value": os.getenv("GITHUB_EVENT_NAME", ""),
+                            "short": True
+                        },
+                        {
+                            "title": "Actions URL",
+                            "value": f"<{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_REPOSITORY', '')}/commit/{os.getenv('GITHUB_SHA', '')}/checks|{os.getenv('GITHUB_WORKFLOW', '')}>",
+                            "short": True
+                        },
+                        {
+                            "title": "Commit",
+                            "value": f"<{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_REPOSITORY', '')}/commit/{os.getenv('GITHUB_SHA', '')}|{os.getenv('GITHUB_SHA', '')[:6]}>",
+                            "short": True
+                        },
+                        {
+                            "title": "Message",
+                            "value": "Reply message",
+                            "short": False
+                        },
+                        {
+                            "title": "Status",
+                            "value": "success",
+                            "short": True
+                        },
+                        {
+                            "title": "Commit URL",
+                            "value": "",
+                            "short": True
+                        }
+                    ]
+                }
+            ],
+            "thread_ts": "1234567890.123456"
         }
+
         mock_post.assert_called_once_with(
-            "https://slack.com/api/chat.postMessage",
-            headers={
-                "Authorization": "Bearer xoxb-1234",
-                "Content-Type": "application/json"
-            },
-            data=json.dumps(expected_payload)
+            "http://example.com",
+            data=json.dumps(expected_payload),
+            headers={'Content-Type': 'application/json'}
         )
         self.assertTrue(mock_post.called)
 
@@ -160,50 +237,50 @@ class TestRun(unittest.TestCase):
         self.assertTrue(mock_get.called)
         self.assertEqual(ts, "1234567890.123456")
 
-    @patch('run.send_reply_message')
     @patch('run.send_slack_message')
-    def test_main_with_thread_ts(self, mock_send_slack_message, mock_send_reply_message):
+    def test_main_with_thread_ts(self, mock_send_slack_message):
         with patch.dict('os.environ', {
-            'INPUT_SLACK_WEBHOOK': 'http://example.com',
-            'INPUT_STATUS': 'success',
-            'INPUT_AUTHOR_NAME': 'GitHub Action',
-            'INPUT_AUTHOR_LINK': '',
-            'INPUT_AUTHOR_ICON': '',
-            'INPUT_TITLE': 'Build Notification',
-            'INPUT_TITLE_LINK': '',
-            'INPUT_MESSAGE': 'Notification from GitHub Action',
-            'INPUT_COLOR': '#36a64f',
-            'INPUT_SLACK_TOKEN': 'xoxb-1234',
-            'INPUT_CHANNEL_ID': 'C12345678',
-            'INPUT_SLACK_THREAD_TS': '1234567890.123456'
-        }):
-            run.main()
-            mock_send_reply_message.assert_called_once_with(
-                'xoxb-1234', 'C12345678', '1234567890.123456', 'Notification from GitHub Action'
-            )
-            mock_send_slack_message.assert_not_called()
-
-    @patch('run.send_reply_message')
-    @patch('run.send_slack_message')
-    def test_main_without_thread_ts(self, mock_send_slack_message, mock_send_reply_message):
-        with patch.dict('os.environ', {
-            'INPUT_SLACK_WEBHOOK': 'http://example.com',
-            'INPUT_STATUS': 'success',
-            'INPUT_AUTHOR_NAME': 'GitHub Action',
-            'INPUT_AUTHOR_LINK': '',
-            'INPUT_AUTHOR_ICON': '',
-            'INPUT_TITLE': 'Build Notification',
-            'INPUT_TITLE_LINK': '',
-            'INPUT_MESSAGE': 'Notification from GitHub Action',
-            'INPUT_COLOR': '#36a64f',
-            'INPUT_SLACK_TOKEN': 'xoxb-1234',
-            'INPUT_CHANNEL_ID': 'C12345678'
+            'SLACK_WEBHOOK': 'http://example.com',
+            'STATUS': 'success',
+            'AUTHOR_NAME': 'GitHub Action',
+            'AUTHOR_LINK': '',
+            'AUTHOR_ICON': '',
+            'TITLE': 'Build Notification',
+            'TITLE_LINK': '',
+            'MESSAGE': 'Notification from GitHub Action',
+            'COLOR': '#36a64f',
+            'SLACK_TOKEN': 'xoxb-1234',
+            'CHANNEL_ID': 'C12345678',
+            'SLACK_THREAD_TS': '1234567890.123456',
+            'SLACK_MESSAGE': 'Notification from GitHub Action',
+            'MSG_MODE': 'WEBHOOK'
         }):
             run.main()
             mock_send_slack_message.assert_called_once_with(
-                'http://example.com', 'success', 'GitHub Action', '', '', 'Build Notification', '', 'Notification from GitHub Action', '#36a64f', 'xoxb-1234', 'C12345678'
+                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='good', slack_token='xoxb-1234', channel_id='C12345678', thread_ts='1234567890.123456'
             )
-            mock_send_reply_message.assert_not_called()
+
+    @patch('run.send_slack_message')
+    def test_main_without_thread_ts(self, mock_send_slack_message):
+        with patch.dict('os.environ', {
+            'SLACK_WEBHOOK': 'http://example.com',
+            'STATUS': 'success',
+            'AUTHOR_NAME': 'GitHub Action',
+            'AUTHOR_LINK': '',
+            'AUTHOR_ICON': '',
+            'TITLE': 'Build Notification',
+            'TITLE_LINK': '',
+            'MESSAGE': 'Notification from GitHub Action',
+            'COLOR': '#36a64f',
+            'SLACK_TOKEN': 'xoxb-1234',
+            'CHANNEL_ID': 'C12345678',
+            'SLACK_MESSAGE': 'Notification from GitHub Action',
+            'MSG_MODE': 'WEBHOOK'
+        }):
+            run.main()
+            mock_send_slack_message.assert_called_once_with(
+                webhook_url='http://example.com', status='success', author_name='GitHub Action', author_link='', author_icon='', title='Build Notification', title_link='', message='Notification from GitHub Action', color='good', slack_token='xoxb-1234', channel_id='C12345678', thread_ts=''
+            )
 
 if __name__ == '__main__':
     unittest.main()
