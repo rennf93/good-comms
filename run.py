@@ -65,6 +65,7 @@ def get_env(name, default=""):
 def send(endpoint, msg):
     try:
         payload = json.dumps(msg, default=lambda o: o.__dict__)
+        logging.info(f"Payload: {payload}")
         return send_raw(endpoint, payload.encode())
     except Exception as err:
         logging.error(f"Error in send: {err}")
@@ -84,6 +85,7 @@ def send_raw(endpoint, payload):
             sys.exit(6)
 
         if response.status_code >= 299:
+            logging.error(f"Response: {response.text}")
             return f"Error on message: {response.status_code}"
 
         if get_env("SLACK_FILE_UPLOAD"):
