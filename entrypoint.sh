@@ -8,7 +8,7 @@ export AUTHOR_LINK="${INPUT_AUTHOR_LINK:-""}"
 export AUTHOR_ICON="${INPUT_AUTHOR_ICON:-""}"
 export TITLE="${INPUT_TITLE:-"Build Notification"}"
 export TITLE_LINK="${INPUT_TITLE_LINK:-""}"
-export MESSAGE="${INPUT_MESSAGE:-"Notification from GitHub Action"}"
+export SLACK_MESSAGE="${INPUT_MESSAGE:-"Notification from GitHub Action"}"
 export COLOR="${INPUT_COLOR:-"#36a64f"}"
 export SLACK_TOKEN="${INPUT_SLACK_TOKEN}"
 export CHANNEL_ID="${INPUT_CHANNEL_ID}"
@@ -35,9 +35,9 @@ if [ -z "$CHANNEL_ID" ]; then
   exit 1
 fi
 
-# Ensure MESSAGE is set
-if [ -z "$MESSAGE" ]; then
-  echo "MESSAGE is a required input and must be set."
+# Ensure SLACK_MESSAGE is set
+if [ -z "$SLACK_MESSAGE" ]; then
+  echo "SLACK_MESSAGE is a required input and must be set."
   exit 1
 fi
 
