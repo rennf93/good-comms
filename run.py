@@ -310,7 +310,7 @@ def build_attachments(text, color, fields):
             author_name=get_env("GITHUB_ACTOR", ""),
             author_link=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}",
             author_icon=f"{get_env('GITHUB_SERVER_URL')}/{get_env('GITHUB_ACTOR')}.png?size=32",
-            footer=get_env("SLACK_FOOTER", f"<{get_env('GITHUB_RUN_URL')}|Triggered on this workflow run>"),
+            footer=get_env("SLACK_FOOTER", f"<Powered by Good Comms GitHub Action|https://github.com/rennf93/good-comms>"),
             fields=fields
         )
     ]
@@ -380,12 +380,12 @@ def main():
 
         fields = build_fields(text, commit_sha)
         thread_ts = get_env("SLACK_THREAD_TS")
-        msg = create_webhook_message(text, color, fields, thread_ts if thread_ts else None)
+        # msg = create_webhook_message(text, color, fields, thread_ts if thread_ts else None)
 
-        err = send(endpoint, msg)
-        if err:
-            logging.error(f"Error sending message: {err}")
-            sys.exit(1)
+        # err = send(endpoint, msg)
+        # if err:
+        #     logging.error(f"Error sending message: {err}")
+        #     sys.exit(1)
 
         send_slack_message(
             webhook_url=endpoint,
