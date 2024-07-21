@@ -12,7 +12,6 @@ export SLACK_MESSAGE="${INPUT_MESSAGE:-"Notification from GitHub Action"}"
 export COLOR="${INPUT_COLOR:-"#36a64f"}"
 export SLACK_TOKEN="${INPUT_SLACK_TOKEN}"
 export CHANNEL_ID="${INPUT_CHANNEL_ID}"
-export SLACK_THREAD_TS="${INPUT_SLACK_THREAD_TS}"
 export MSG_MODE="${INPUT_MSG_MODE:-"WEBHOOK"}"
 
 # Check if required inputs are provided
@@ -40,6 +39,11 @@ fi
 if [ -z "$SLACK_MESSAGE" ]; then
   echo "SLACK_MESSAGE is a required input and must be set."
   exit 1
+fi
+
+# Set SLACK_THREAD_TS if provided
+if [ -n "$INPUT_SLACK_THREAD_TS" ]; then
+  export SLACK_THREAD_TS="${INPUT_SLACK_THREAD_TS}"
 fi
 
 # Run the Python script with the provided inputs and capture the output
