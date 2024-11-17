@@ -202,7 +202,6 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
     if thread_ts:
         payload["thread_ts"] = thread_ts
 
-    logging.info(f"Sending message to Slack with payload: {json.dumps(payload, indent=2)}")
     response = requests.post(webhook_url, json=payload, headers=headers)
     logging.info(f"Slack API Response Status: {response.status_code}")
     logging.info(f"Slack API Response Body: {response.text}")
