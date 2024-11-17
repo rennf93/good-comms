@@ -76,7 +76,7 @@ To use this action in your workflow, add the following step:
 
 ### Basic Example
 
-\```yaml
+```yaml
 - name: Send Initial Slack Message
   id: send_initial_slack
   uses: rennf93/good-comms@master
@@ -92,11 +92,11 @@ To use this action in your workflow, add the following step:
     TITLE_LINK: 'https://github.com/rennf93/good-comms/actions'
     MESSAGE: 'Starting deployment...'
     COLOR: warning
-\```
+```
 
 ### Threaded Messages Example
 
-\```yaml
+```yaml
 - name: Send Initial Slack Message
   id: send_initial_slack
   uses: rennf93/good-comms@master
@@ -128,7 +128,7 @@ To use this action in your workflow, add the following step:
         MESSAGE: 'Deplyment Successful'
         COLOR: good
         SLACK_THREAD_TS: ${{ steps.send_initial_slack.outputs.SLACK_THREAD_TS }}
-\```
+```
 
 
 ## Notes
