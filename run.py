@@ -82,12 +82,17 @@ def sanitize_value(value):
 
 def get_message_ts(slack_token, channel_id, message):
     url = "https://slack.com/api/conversations.history"
-    headers = {"Authorization": f"Bearer {slack_token}", "Content-Type": "application/x-www-form-urlencoded"}
+    headers = {
+        "Authorization": f"Bearer {slack_token}",
+        "Content-Type": "application/json"
+    }
     params = {"channel": channel_id, "limit": 1}
 
     response = requests.get(url, headers=headers, params=params)
     logging.info(f"GET MSG TS Response status code: {response.status_code}")
     if response.status_code != 200:
+        logging.error(f"Failed to retrieve messages: {response.status_code}")
+        logging.error(f"Response body: {response.text}")
         raise ValueError(f"Failed to retrieve messages: {response.status_code}, {response.text}")
 
     response_data = response.json()
@@ -130,6 +135,15 @@ def get_message_ts(slack_token, channel_id, message):
 
 
 def send_slack_message(webhook_url, status, author_name, author_link, author_icon, title, title_link, message, color, slack_token, channel_id, thread_ts=None):
+    is_webhook = not webhook_url.startswith('https://slack.com/api/')
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    if not is_webhook:
+        headers['Authorization'] = f'Bearer {slack_token}'
+
     payload = {
         "username": author_name,
         "icon_url": author_icon,
@@ -184,42 +198,55 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
             }
         ]
     }
+
     if thread_ts:
         payload["thread_ts"] = thread_ts
 
-    response = requests.post(webhook_url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
+    logging.info(f"Sending message to Slack with payload: {json.dumps(payload, indent=2)}")
+    response = requests.post(webhook_url, json=payload, headers=headers)
+    logging.info(f"Slack API Response Status: {response.status_code}")
+    logging.info(f"Slack API Response Body: {response.text}")
 
     if response.status_code != 200:
-        logging.error(f"Request to Slack returned an error {response.status_code}, the response is:\n{response.text}")
-        return f"Error on message: {response.status_code}"
+        error_msg = f"Request to Slack returned an error {response.status_code}, response: {response.text}"
+        logging.error(error_msg)
+        return error_msg
 
-    if response.text.strip() == "ok":
-        logging.info("Message sent successfully, but no JSON response to parse.")
-        time.sleep(5)
-        if not thread_ts:
-            thread_ts = get_message_ts(slack_token, channel_id, message)
-        channel = channel_id
-        message_id = thread_ts
-    else:
-        try:
+    try:
+        # WebHook
+        if is_webhook:
+            try:
+                message_ts = get_message_ts(slack_token, channel_id, message)
+                thread_ts = message_ts
+                channel = channel_id
+                message_id = message_ts
+                logging.info(f"Webhook mode - Retrieved timestamp: {thread_ts}")
+            except Exception as e:
+                logging.error(f"Failed to get message ts: {e}")
+                # Fallback to current time
+                current_ts = str(int(time.time()))
+                thread_ts = thread_ts or current_ts
+                channel = channel_id
+                message_id = thread_ts
+                logging.info(f"Webhook mode - Using fallback timestamp: {thread_ts}")
+        else:
+            # API
             response_data = response.json()
-            thread_ts = response_data.get('ts')
-            channel = response_data.get('channel')
-            message_id = response_data.get('message', {}).get('ts', thread_ts)
-        except json.JSONDecodeError:
-            logging.error(f"Failed to parse JSON response: {response.text}")
-            return f"Error on message: {response.status_code}"
+            if response_data.get('ok'):
+                thread_ts = response_data.get('ts')
+                channel = response_data.get('channel')
+                message_id = thread_ts
+                logging.info(f"API mode - Message sent successfully. Thread TS: {thread_ts}")
+            else:
+                error_msg = f"Slack API error: {response_data.get('error')}"
+                logging.error(error_msg)
+                return error_msg
+    except json.JSONDecodeError:
+        error_msg = f"Failed to parse JSON response: {response.text}"
+        logging.error(error_msg)
+        return error_msg
 
-    if not thread_ts:
-        logging.error("thread_ts is not set")
-        return "thread_ts is not set"
-    if not channel:
-        logging.error("channel is not set")
-        return "channel is not set"
-    if not message_id:
-        logging.error("message_id is not set")
-        return "message_id is not set"
-
+    # Sanitize
     thread_ts = sanitize_value(thread_ts)
     channel = sanitize_value(channel)
     message_id = sanitize_value(message_id)
@@ -286,6 +313,9 @@ def build_attachments(text, color, fields):
 
 def main():
     endpoint = get_env("SLACK_WEBHOOK")
+    logging.info(f"Using endpoint: {endpoint}")
+    logging.info(f"Message mode: {get_env('MSG_MODE')}")
+
     custom_payload = get_env("SLACK_CUSTOM_PAYLOAD", "")
     if not endpoint:
         if not get_env("SLACK_CHANNEL"):
@@ -336,7 +366,7 @@ def main():
         # fields = build_fields(text, commit_sha)
         thread_ts = get_env("SLACK_THREAD_TS")
 
-        err = send_slack_message(
+        result = send_slack_message(
             webhook_url=endpoint,
             status=get_env("STATUS"),
             author_name=get_env("AUTHOR_NAME"),
@@ -350,11 +380,13 @@ def main():
             channel_id=get_env("CHANNEL_ID"),
             thread_ts=thread_ts if thread_ts else None
         )
-        if err:
-            logging.error(f"Error sending message: {err}")
-            sys.exit(1)
 
-    logging.info("Successfully sent the message!")
+        if result.startswith("Error"):
+            logging.error(f"Error sending message: {result}")
+            sys.exit(1)
+        else:
+            print(result)
+            logging.info("Successfully sent the message!")
 
 
 if __name__ == "__main__":
