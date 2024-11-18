@@ -109,38 +109,21 @@ def get_message_ts(slack_token, channel_id, message, author_name, title):
             return ""
         return ''.join(c.lower() for c in text if not c.isspace())
 
-    normalized_message = normalize_text(message)
     normalized_author = normalize_text(author_name)
-    normalized_title = normalize_text(title)
-
-    logging.info(f"OG Message: {message}")
-    logging.info(f"Normalized message: {normalized_message}")
+    logging.info(f"Looking for author: {author_name}")
+    logging.info(f"Normalized author: {normalized_author}")
 
     for msg in messages:
-        logging.info(f"Checking message: {msg.get('text')}")
         if 'attachments' in msg:
             for attachment in msg['attachments']:
                 att_author = normalize_text(attachment.get('author_name', ''))
-                att_title = normalize_text(attachment.get('title', ''))
+                logging.info(f"Checking message with author: {attachment.get('author_name', '')}")
 
-                if att_author == normalized_author and att_title == normalized_title:
-                    attachment_text = attachment.get('text', attachment.get('fallback', ''))
-                    normalized_attachment_text = normalize_text(attachment_text)
-                    logging.info(f"Original attachment text: {attachment_text}")
-                    logging.info(f"Normalized attachment text: {normalized_attachment_text}")
-                    if normalized_message in normalized_attachment_text:
-                        logging.info(f"Thread TS: {msg.get('ts')}")
-                        return msg.get('ts')
-        else:
-            original_text = msg.get('text', '')
-            normalized_text = normalize_text(original_text)
-            logging.info(f"Original text: {original_text}")
-            logging.info(f"Normalized text: {normalized_text}")
-            if normalized_message in normalized_text:
-                logging.info(f"Thread TS: {msg.get('ts')}")
-                return msg.get('ts')
+                if att_author == normalized_author:
+                    logging.info(f"Found matching author! Thread TS: {msg.get('ts')}")
+                    return msg.get('ts')
 
-    raise ValueError("Message not found in the channel.")
+    raise ValueError(f"No message found with author: {author_name}")
 
 
 def send_slack_message(webhook_url, status, author_name, author_link, author_icon, title, title_link, message, color, slack_token, channel_id, thread_ts=None):
@@ -231,8 +214,7 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
                 logging.info(f"Webhook mode - Retrieved timestamp: {thread_ts}")
             except Exception as e:
                 logging.error(f"Failed to get message ts: {e}")
-                # Fallback to current time
-                current_ts = str(int(time.time()))
+                current_ts = f"{time.time():.6f}"
                 thread_ts = thread_ts or current_ts
                 channel = channel_id
                 message_id = thread_ts
