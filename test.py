@@ -66,7 +66,7 @@ class TestRun(unittest.TestCase):
             "messages": [
                 {
                     "text": "Some other message",
-                    "ts": "1234567890.111111",
+                    "ts": "1234567890.123456",
                     "attachments": [
                         {
                             "author_name": "GitHub Action",
@@ -77,7 +77,7 @@ class TestRun(unittest.TestCase):
                 },
                 {
                     "text": "Notification from GitHub Action",
-                    "ts": "1234567890.123456",
+                    "ts": "1234567890.111111",
                     "attachments": [
                         {
                             "author_name": "GitHub Action",
