@@ -114,14 +114,12 @@ def get_message_ts(slack_token, channel_id, message, author_name, title):
     logging.info(f"Normalized author: {normalized_author}")
 
     for msg in messages:
-        if 'attachments' in msg:
-            for attachment in msg['attachments']:
-                att_author = normalize_text(attachment.get('author_name', ''))
-                logging.info(f"Checking message with author: {attachment.get('author_name', '')}")
+        msg_username = normalize_text(msg.get('username', ''))
+        logging.info(f"Checking message with username: {msg.get('username', '')}")
 
-                if att_author == normalized_author:
-                    logging.info(f"Found matching author! Thread TS: {msg.get('ts')}")
-                    return msg.get('ts')
+        if msg_username == normalized_author:
+            logging.info(f"Found matching author! Thread TS: {msg.get('ts')}")
+            return msg.get('ts')
 
     raise ValueError(f"No message found with author: {author_name}")
 
@@ -207,7 +205,7 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
         # WebHook
         if is_webhook:
             try:
-                message_ts = get_message_ts(slack_token, channel_id, message, author_name, title)
+                message_ts = get_message_ts(slack_token, channel_id, message, author_name=payload["attachments"][0]["author_name"], title=title)
                 thread_ts = message_ts
                 channel = channel_id
                 message_id = message_ts
