@@ -6,9 +6,10 @@ Inspired by [rtCamp/action-slack-notify](https://github.com/rtCamp/action-slack-
 
 ## Features
 
-- Send a new message to a Slack channel.
-- Reply to an existing thread in a Slack channel.
-- Customize the message with author details, title, and color.
+- Send a new message to a Slack channel
+- Reply to an existing thread in a Slack channel
+- Automatically thread messages by matching author names
+- Customize the message with author details, title, and color
 
 ## Setup
 
@@ -22,6 +23,15 @@ Inspired by [rtCamp/action-slack-notify](https://github.com/rtCamp/action-slack-
 4. Copy the Bot User OAuth Token
 5. Create a webhook for your channel
 6. Add both the token and webhook URL as GitHub secrets
+
+## Threading Behavior
+
+The action automatically handles message threading by matching the `AUTHOR_NAME` parameter. When sending a message:
+- If no `SLACK_THREAD_TS` is provided, it will look for the most recent message from the same author
+- If a matching author is found, the new message will be threaded to that message
+- If no matching author is found, a new message thread will be started
+
+This allows you to maintain separate threads for different types of notifications (e.g., "Deployment", "Tests", "Build") without manually managing thread timestamps.
 
 ## Inputs
 
@@ -56,7 +66,7 @@ To use this action in your workflow, add the following step:
 
 ```yaml
 - name: Send Slack Communication
-  uses: rennf93/good-comms@v1
+  uses: rennf93/good-comms@master
   with:
     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
     STATUS: 'success'
@@ -85,7 +95,7 @@ To use this action in your workflow, add the following step:
     SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
     STATUS: 'Started'
     CHANNEL_ID: '${{ secrets.SLACK_CHANNEL }}'
-    AUTHOR_NAME: 'Deployment'
+    AUTHOR_NAME: 'GitHub Action'
     AUTHOR_LINK: 'https://github.com/rennf93/good-comms'
     AUTHOR_ICON: ':rocket:'
     TITLE: 'Deployment Started'
@@ -105,7 +115,7 @@ To use this action in your workflow, add the following step:
     SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
     STATUS: 'Started'
     CHANNEL_ID: '${{ secrets.SLACK_CHANNEL }}'
-    AUTHOR_NAME: 'Deployment'
+    AUTHOR_NAME: 'GitHub Action'
     AUTHOR_LINK: 'https://github.com/rennf93/good-comms'
     AUTHOR_ICON: ':rocket:'
     TITLE: 'Deployment Started'
@@ -120,7 +130,7 @@ To use this action in your workflow, add the following step:
         SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
         STATUS: 'Success'
         CHANNEL_ID: '${{ secrets.SLACK_CHANNEL }}'
-        AUTHOR_NAME: 'Deployment'
+        AUTHOR_NAME: 'GitHub Action'
         AUTHOR_LINK: 'https://github.com/rennf93/good-comms'
         AUTHOR_ICON: ':gem:'
         TITLE: 'Deployment Successful'
@@ -135,9 +145,10 @@ To use this action in your workflow, add the following step:
 
 - The action requires both webhook URL and Bot token because:
   - Webhooks are used for basic message posting
-  - Bot token is used for threading and file uploads
-- Thread timestamps are automatically handled when replying to messages
-- Message IDs are the same as thread timestamps for consistency
+  - Bot token is used for threading and message history
+- Thread matching is based on the `AUTHOR_NAME` parameter
+- The action looks for the most recent message (within last 10 messages) with matching author name
+- Manual `SLACK_THREAD_TS` still takes precedence if provided
 
 ## License
 
