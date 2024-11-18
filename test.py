@@ -110,8 +110,8 @@ class TestRun(unittest.TestCase):
                     "ts": "1234567890.111111",
                     "attachments": [
                         {
-                            "author_name": "GitHub Action",
-                            "title": "Build Notification",
+                            "author_name": "Different GitHub Action",
+                            "title": "DifferentBuild Notification",
                             "text": "Different notification"
                         }
                     ]
