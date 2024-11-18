@@ -128,7 +128,7 @@ class TestRun(unittest.TestCase):
                 title="Build Notification"
             )
 
-        self.assertEqual(str(context.exception), "Message not found in the channel.")
+        self.assertEqual(str(context.exception), "No message found with author: GitHub Action")
 
     @patch('run.send_slack_message')
     def test_main_with_thread_ts(self, mock_send_slack_message):
