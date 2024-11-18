@@ -99,6 +99,37 @@ class TestRun(unittest.TestCase):
 
         self.assertEqual(ts, "1234567890.123456")
 
+    @patch('run.requests.get')
+    def test_get_message_ts_no_match(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "ok": True,
+            "messages": [
+                {
+                    "text": "Some other message",
+                    "ts": "1234567890.111111",
+                    "attachments": [
+                        {
+                            "author_name": "GitHub Action",
+                            "title": "Build Notification",
+                            "text": "Different notification"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        with self.assertRaises(ValueError) as context:
+            run.get_message_ts(
+                slack_token="xoxb-1234",
+                channel_id="C12345678",
+                message="Notification from GitHub Action",
+                author_name="GitHub Action",
+                title="Build Notification"
+            )
+
+        self.assertEqual(str(context.exception), "Message not found in the channel.")
+
     @patch('run.send_slack_message')
     def test_main_with_thread_ts(self, mock_send_slack_message):
         mock_send_slack_message.return_value = "SLACK_THREAD_TS=1234567890.123456\nSLACK_CHANNEL=C12345678\nSLACK_MESSAGE_ID=1234567890.123456"
