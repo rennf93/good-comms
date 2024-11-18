@@ -96,8 +96,7 @@ class TestRun(unittest.TestCase):
             slack_token="xoxb-1234",
             channel_id="C12345678",
             message="Notification from GitHub Action",
-            author_name=author_name,
-            title="Build Notification"
+            author_name=author_name
         )
 
         self.assertEqual(ts, "1234567890.123456")
@@ -116,7 +115,7 @@ class TestRun(unittest.TestCase):
                     "attachments": [
                         {
                             "author_name": "Different GitHub Action",
-                            "title": "DifferentBuild Notification",
+                            "title": "Different Build Notification",
                             "text": "Different notification"
                         }
                     ],
@@ -129,8 +128,7 @@ class TestRun(unittest.TestCase):
                 slack_token="xoxb-1234",
                 channel_id="C12345678",
                 message="Notification from GitHub Action",
-                author_name=author_name,
-                title="Build Notification"
+                author_name=author_name
             )
 
         self.assertEqual(str(context.exception), f"No message found with author: {author_name}")

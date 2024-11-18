@@ -80,7 +80,7 @@ def sanitize_value(value):
     return value.replace('\n', '').replace('\r', '').replace('=', '')
 
 
-def get_message_ts(slack_token, channel_id, message, author_name, title):
+def get_message_ts(slack_token, channel_id, message, author_name):
     url = "https://slack.com/api/conversations.history"
     headers = {
         "Authorization": f"Bearer {slack_token}",
@@ -205,7 +205,7 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
         # WebHook
         if is_webhook:
             try:
-                message_ts = get_message_ts(slack_token, channel_id, message, author_name=payload["attachments"][0]["author_name"], title=title)
+                message_ts = get_message_ts(slack_token, channel_id, message, author_name)
                 thread_ts = message_ts
                 channel = channel_id
                 message_id = message_ts
