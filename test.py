@@ -60,12 +60,14 @@ class TestRun(unittest.TestCase):
 
     @patch('run.requests.get')
     def test_get_message_ts(self, mock_get):
+        author_name = "GitHub Action"
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {
             "ok": True,
             "messages": [
                 {
-                    "text": "Some other message",
+                    "username": "GitHub Action",
+                    "text": "Some text",
                     "ts": "1234567890.123456",
                     "attachments": [
                         {
@@ -73,10 +75,11 @@ class TestRun(unittest.TestCase):
                             "title": "Build Notification",
                             "text": "Different notification"
                         }
-                    ]
+                    ],
                 },
                 {
-                    "text": "Notification from GitHub Action",
+                    "username": "Different Author",
+                    "text": "Different text",
                     "ts": "1234567890.111111",
                     "attachments": [
                         {
@@ -84,7 +87,7 @@ class TestRun(unittest.TestCase):
                             "title": "Build Notification",
                             "text": "Notification from GitHub Action"
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -93,7 +96,7 @@ class TestRun(unittest.TestCase):
             slack_token="xoxb-1234",
             channel_id="C12345678",
             message="Notification from GitHub Action",
-            author_name="GitHub Action",
+            author_name=author_name,
             title="Build Notification"
         )
 
@@ -101,12 +104,14 @@ class TestRun(unittest.TestCase):
 
     @patch('run.requests.get')
     def test_get_message_ts_no_match(self, mock_get):
+        author_name = "GitHub Action"
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {
             "ok": True,
             "messages": [
                 {
-                    "text": "Some other message",
+                    "username": "Different Author",
+                    "text": "Some text",
                     "ts": "1234567890.111111",
                     "attachments": [
                         {
@@ -114,7 +119,7 @@ class TestRun(unittest.TestCase):
                             "title": "DifferentBuild Notification",
                             "text": "Different notification"
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -124,11 +129,11 @@ class TestRun(unittest.TestCase):
                 slack_token="xoxb-1234",
                 channel_id="C12345678",
                 message="Notification from GitHub Action",
-                author_name="GitHub Action",
+                author_name=author_name,
                 title="Build Notification"
             )
 
-        self.assertEqual(str(context.exception), "No message found with author: GitHub Action")
+        self.assertEqual(str(context.exception), f"No message found with author: {author_name}")
 
     @patch('run.send_slack_message')
     def test_main_with_thread_ts(self, mock_send_slack_message):
