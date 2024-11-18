@@ -65,10 +65,23 @@ class TestRun(unittest.TestCase):
             "ok": True,
             "messages": [
                 {
+                    "text": "Some other message",
+                    "ts": "1234567890.111111",
+                    "attachments": [
+                        {
+                            "author_name": "GitHub Action",
+                            "title": "Build Notification",
+                            "text": "Different notification"
+                        }
+                    ]
+                },
+                {
                     "text": "Notification from GitHub Action",
                     "ts": "1234567890.123456",
                     "attachments": [
                         {
+                            "author_name": "GitHub Action",
+                            "title": "Build Notification",
                             "text": "Notification from GitHub Action"
                         }
                     ]
