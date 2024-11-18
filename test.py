@@ -79,7 +79,9 @@ class TestRun(unittest.TestCase):
         ts = run.get_message_ts(
             slack_token="xoxb-1234",
             channel_id="C12345678",
-            message="Notification from GitHub Action"
+            message="Notification from GitHub Action",
+            author_name="GitHub Action",
+            title="Build Notification"
         )
 
         self.assertEqual(ts, "1234567890.123456")
