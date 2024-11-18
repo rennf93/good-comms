@@ -80,13 +80,13 @@ def sanitize_value(value):
     return value.replace('\n', '').replace('\r', '').replace('=', '')
 
 
-def get_message_ts(slack_token, channel_id, message):
+def get_message_ts(slack_token, channel_id, message, author_name, title):
     url = "https://slack.com/api/conversations.history"
     headers = {
         "Authorization": f"Bearer {slack_token}",
         "Content-Type": "application/json"
     }
-    params = {"channel": channel_id, "limit": 1}
+    params = {"channel": channel_id, "limit": 10}
 
     response = requests.get(url, headers=headers, params=params)
     logging.info(f"GET MSG TS Response status code: {response.status_code}")
@@ -104,9 +104,14 @@ def get_message_ts(slack_token, channel_id, message):
         raise ValueError("No messages found in the channel.")
 
     def normalize_text(text):
-        return text.replace('\n', '').replace(' ', '').lower()
+        # return text.replace('\n', '').replace(' ', '').lower()
+        if not text:
+            return ""
+        return ''.join(c.lower() for c in text if not c.isspace())
 
     normalized_message = normalize_text(message)
+    normalized_author = normalize_text(author_name)
+    normalized_title = normalize_text(title)
 
     logging.info(f"OG Message: {message}")
     logging.info(f"Normalized message: {normalized_message}")
@@ -115,13 +120,17 @@ def get_message_ts(slack_token, channel_id, message):
         logging.info(f"Checking message: {msg.get('text')}")
         if 'attachments' in msg:
             for attachment in msg['attachments']:
-                attachment_text = attachment.get('text', attachment.get('fallback', ''))
-                normalized_attachment_text = normalize_text(attachment_text)
-                logging.info(f"Original attachment text: {attachment_text}")
-                logging.info(f"Normalized attachment text: {normalized_attachment_text}")
-                if normalized_message in normalized_attachment_text:
-                    logging.info(f"Thread TS: {msg.get('ts')}")
-                    return msg.get('ts')
+                att_author = normalize_text(attachment.get('author_name', ''))
+                att_title = normalize_text(attachment.get('title', ''))
+
+                if att_author == normalized_author and att_title == normalized_title:
+                    attachment_text = attachment.get('text', attachment.get('fallback', ''))
+                    normalized_attachment_text = normalize_text(attachment_text)
+                    logging.info(f"Original attachment text: {attachment_text}")
+                    logging.info(f"Normalized attachment text: {normalized_attachment_text}")
+                    if normalized_message in normalized_attachment_text:
+                        logging.info(f"Thread TS: {msg.get('ts')}")
+                        return msg.get('ts')
         else:
             original_text = msg.get('text', '')
             normalized_text = normalize_text(original_text)
@@ -215,7 +224,7 @@ def send_slack_message(webhook_url, status, author_name, author_link, author_ico
         # WebHook
         if is_webhook:
             try:
-                message_ts = get_message_ts(slack_token, channel_id, message)
+                message_ts = get_message_ts(slack_token, channel_id, message, author_name, title)
                 thread_ts = message_ts
                 channel = channel_id
                 message_id = message_ts
